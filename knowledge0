@@ -1,0 +1,300 @@
+在交互式环境中输入表达式
+
+启动IDLE就运行了交互式环境，这是和python一起安装的。在windows上，打开“开始”菜单，选择“All Program -- python3.3”，然后选择“IDLE(python GUI)”。
+一个窗口会出现，包含>>>提示符，这就是交互式环境。之后就可以执行python操作。
+
+字符串操作，例如  'string'*5
+
+在用于两个整型或浮点型值时，*操作符表示乘法，但*操作符用于一个字符串和一个整型值时，它变成了“字符串复制”操作符。
+以上表达式求值为一个字符串，它将原来的字符串重复若干次，即5次。
+字符串复制是一个有用的技巧，但不像字符串连接那样常用。
+
+注：只能用+操作符加两个整数，或连接两个字符串；不能让一个整数和一个字符串相加，因为这不符合python的语法，可以使用字符串版本的整数，修复这个错误。
+
+用sys.exit()提前结束程序
+
+因为这个函数在sys模块中，所以必须先导入sys。当程序执行到指令的底部时，总是会终止。但是，可以通过调用sys.exit()函数，可以让程序终止或退出。
+可以在python文件中设置一个需要用户输入的节点，输入相关指令之后，就触发结束程序指令。
+
+import sys
+while True:
+print('Type exit to exit.')
+response = input()
+if response == 'exit':
+sys.exit()
+print('You typed ' + response + '.')
+
+如果程序陷入无限循环中，可以按ctrl+c终止循环。
+
+None值:None表示没有值。
+在幕后，对于所有没有return语句的函数定义，python都会在末尾加上return None。这类似于while或for循环隐式地以continue语句结尾。而且，如果使用
+不带值的return语句，也就是只有return关键字本身，那么就返回None。
+
+局部和全局作用域
+
+在被调用函数内赋值的变元和变量，处于该函数的“局部作用域”。在所有函数之外赋值的变量，属于“全局作用域”，处于局部作用域的变量，被称为“局部
+变量”。处于全局作用域的变量，被称为“全局变量”。一个变量必是其中一种，不能既是局部的又是全局的。
+可以将“作用域”看成是变量的容器。当作用域被销毁时，所有保存在该作用域内的变量的值就被丢弃了。只有一个全局作用域，它是在程序开始时创建的。如
+果程序终止，全局作用域就被销毁，它的所有变量就被丢弃了。否则，下次你运行程序的时候，这些变量就会记住它们上次运行时的值。
+一个函数被调用时，就创建了一个局部作用域。在这个函数内赋值的所有变量，存在于该局部作用域内。该函数返回时，这个局部作用域就被销毁了，
+这些变量就丢失了。下次调用这个函数，局部变量不会记得该函数上次被调用时它们保存的值。
+虽然在小程序中使用全局变量没有太大问题，但当程序变得越来越大时，依赖全局变量就是一个坏习惯。
+
+作用域很重要，理由如下：
+ 全局作用域中的代码不能使用任何局部变量；
+ 但是，局部作用域可以访问全局变量；
+ 一个函数的局部作用域中的代码，不能使用其他局部作用域中的变量。
+ 如果在不同的作用域中，你可以用相同的名字命名不同的变量。也就是说，可
+以有一个名为spam 的局部变量，和一个名为spam 的全局变量。
+
+操作符 操作 例子 求值为
+** 指数 2 ** 3 8
+% 取模/取余数 22 % 8 6
+// 整除/商数取整 22 // 8 2
+/ 除法 22 / 8 2.75
+* 乘法 3 * 5 15
+- 减法 5 - 2 3
++ 加法 2 + 2 4
+
+列表连接和列表复制
+
++操作符可以连接两个列表，得到一个新列表，就像它将两个字符串合并成一个新字符串一样，*操作符可以用于一个列表和一个整数，实现列表的复制，
+最终形成一个复制元素若干次的新列表。
+
+利用in 和not in 操作符，可以确定一个值否在列表中。像其他操作符一样，in和not in 用在表达式中，连接两个值：一个要在列表中查找的值，以及待查找
+的列表。这些表达式将求值为布尔值。
+
+随机函数：
+import random
+secretNumber = random.randint(1, 20)
+
+% 求余：最常见的应用，判断奇偶数：如果number % 2 == 0，整数number 就是偶数，如果number % 2 == 1，它就是奇数。
+
+多重赋值技巧
+
+多重赋值技巧是一种快捷方式，让你在一行代码中，用列表中的值为多个变量赋值，如：x,y,z=list，变量的数目和列表的长度必须严格相等。
+
+增强的赋值语句 等价的赋值语句
+spam += 1 spam = spam + 1
+spam -= 1 spam = spam - 1
+spam *= 1 spam = spam * 1
+spam /= 1 spam = spam / 1
+spam %= 1 spam = spam % 1
+
+方法：方法和函数是一回事，只是它是调用在一个值上。如：value.way()
+
+用index()方法在列表中查找值
+列表值有一个index()方法，可以传入一个值，如果该值存在于列表中，就返回它的下标，如果该值不在列表中，python就会报valueerror，
+如果列表中存在重复的值，就返回它第一次出现的下标。
+list.index('xx')
+
+列表排序
+关于sort()方法，你应该注意3 件事。首先，sort()方法当场对列表排序。不要写出spam = spam.sort()这样的代码，试图记录返回值。
+其次，不能对既有数字又有字符串值的列表排序，因为Python 不知道如何比较它们。
+对列表调用方法sort()时，大写字母都会排在小写字母前面，如果需要忽略大小写，让列表按照普通字典顺序来排序，就在调用sort()方法时，
+将关键字参数key设置为str.lower。list.sort(key=str.lower)
+
+类似列表的类型：字符串和元组
+列表并不是唯一表示序列值的数据类型。例如，字符串和列表实际上很相似，只要你认为字符串是单个文本字符的列表。对列表的许多操作，也可以作用于字符
+串：按下标取值、切片、用于for 循环、用于len()，以及用于in 和not in 操作符。
+
+元组是用圆括号（），但元组与列表的主要区别还在于，元组像字符串一样，是不可变的。元组不能让它们的值被修改、添加或删除。
+如果元组中只有一个值，你可以在括号内该值的后面跟上一个逗号，表明这种情况。否则，Python 将认为，你只是在一个普通括号内输入了一个值。逗号告诉
+Python，这是一个元组。
+
+用list()和tuple()函数来转换类型
+正如str(42)将返回'42'，即整数42 的字符串表示形式，函数list()和tuple()将返回传递给它们的值的列表和元组版本。
+>>> tuple(['cat', 'dog', 5])
+('cat', 'dog', 5)
+>>> list(('cat', 'dog', 5))
+['cat', 'dog', 5]
+>>> list('hello')
+['h', 'e', 'l', 'l', 'o']
+如果需要元组值的一个可变版本，将元组转换成列表就很方便。
+
+split函数将字符串拆分成列表:string.split(分隔符)
+join将列表元素组合成字符串：'分隔符'.join(list)
+str = "Line1-abcdef \nLine2-abc \nLine4-abcd";
+print str.split( );
+print str.split(' ', 1 );
+以上实例输出结果如下：
+['Line1-abcdef', 'Line2-abc', 'Line4-abcd']
+['Line1-abcdef', '\nLine2-abc \nLine4-abcd']
+
+copy 模块的copy()和deepcopy()函数
+
+在处理列表和字典时，尽管传递引用常常是最方便的方法，但如果函数修改了传入的列表或字典，你可能不希望这些变动影响原来的列表或字典。要做到这一点，
+Python 提供了名为copy 的模块，其中包含copy()和deepcopy()函数。第一个函数copy.copy()，可以用来复制列表或字典这样的可变值，而不只是复制引用。
+>>> import copy
+>>> spam = ['A', 'B', 'C', 'D']
+>>> cheese = copy.copy(spam)
+>>> cheese[1] = 42
+>>> spam
+['A', 'B', 'C', 'D']
+>>> cheese
+['A', 42, 'C', 'D']
+如果要复制的列表中包含了列表，那就使用copy.deepcopy()函数来代替。deepcopy()函数将同时复制它们内部的列表。
+
+字典与列表
+
+不像列表，字典中的表项是不排序的。在列表中，有第一个选项的概念，但字典中没有“第一个”表项。虽然确定两个列表是否相同时，表项的顺序很重要，
+但在字典中，键值对输入的顺序并不重要。
+>>> spam = ['cats', 'dogs', 'moose']
+>>> bacon = ['dogs', 'moose', 'cats']
+>>> spam == bacon
+False
+>>> eggs = {'name': 'Zophie', 'species': 'cat', 'age': '8'}
+>>> ham = {'species': 'cat', 'age': '8', 'name': 'Zophie'}
+>>> eggs == ham
+True
+因为字典是不排序的，所以不能像列表那样切片。
+
+利用keys()、values()和items()方法，循环分别可以迭代键、值或键-值对。请注意，items()方法返回的dict_items 值中，包含的是键和值的元组。
+
+get()方法
+
+在访问一个键的值之前，检查该键是否存在于字典中，这很麻烦。好在，字典有一个get()方法，它有两个参数：要取得其值的键，以及如果该键不存在时，
+返回的备用值：
+>>> picnicItems = {'apples': 5, 'cups': 2}
+>>> 'I am bringing ' + str(picnicItems.get('cups', 0)) + ' cups.'
+'I am bringing 2 cups.'
+>>> 'I am bringing ' + str(picnicItems.get('eggs', 0)) + ' eggs.'
+'I am bringing 0 eggs.'
+因为picnicItems 字典中没有'egg'键，get()方法返回的默认值是0。不使用get()，代码就会产生一个错误消息。
+
+转义字符：
+“转义字符”让你输入一些字符，它们用其他方式是不可能放在字符串里的。转义字符包含一个倒斜杠（\），紧跟着是想要添加到字符串中的字符。
+（尽管它包含两个字符，但大家公认它是一个转义字符。）例如，单引号的转义字符是\’。你可以在单引号开始和结束的字符串中使用它。
+转义字符 打印为
+\' 单引号
+\" 双引号
+\t 制表符
+\n 换行符
+\\ 倒斜杠
+
+
+setdefault()方法
+
+你常常需要为字典中某个键设置一个默认值，当该键没有任何值时使用它。代码看起来像这样：
+spam = {'name': 'Pooka', 'age': 5}
+if 'color' not in spam:
+spam['color'] = 'black'
+setdefault()方法提供了一种方式，在一行中完成这件事。传递给该方法的第一个参数，是要检查的键。第二个参数，是如果该键不存在时要设置的值。
+如果该键确实存在，方法就会返回键的值。
+>>> spam = {'name': 'Pooka', 'age': 5}
+>>> spam.setdefault('color', 'black')
+'black'
+>>> spam
+{'color': 'black', 'age': 5, 'name': 'Pooka'}
+>>> spam.setdefault('color', 'white')
+'black'
+>>> spam
+{'color': 'black', 'age': 5, 'name': 'Pooka'}
+第一次调用setdefault()时，spam 变量中的字典变为{'color': 'black', 'age': 5, 'name':'Pooka'}。该方法返回值'black'，
+因为现在该值被赋给键'color'。当spam.setdefault('color','white')接下来被调用时，该键的值“没有”被改变成'white'，
+因为spam 变量已经有名为'color'的键。
+
+漂亮打印
+
+如果在程序中导入pprint模块，就可以使用pprint()和pformat()函数，它们将“漂亮打印”一个字典的字。如果想要字典中表项的显示
+比print()的输出结果更干净，这就有用了。漂亮打印的输出看起来更干净，键排过序。
+如果字典本身包含嵌套的列表或字典，pprint.pprint()函数就特别有用。
+如果希望得到漂亮打印的文本作为字符串，而不是显示在屏幕上，那就调用pprint.pformat()
+下面两行代码是等价的：
+pprint.pprint(someDictionaryValue)
+print(pprint.pformat(someDictionaryValue))
+
+原始字符串
+
+可以在字符串开始的引号之前加上r，使它成为原始字符串。“原始字符串”完全忽略所有的转义字符，打印出字符串中所有的倒斜杠：
+>>> print(r'That is Carol\'s cat.')
+That is Carol\'s cat.
+
+用三重引号的多行字符串：
+虽然可以用\n转义字符将换行放入一个字符串，但使用多行字符串通常更容易。在Python 中，多行字符串的起止是3 个单引号或3 个双引号。“三重引号”之间的
+所有引号、制表符或换行，都被认为是字符串的一部分。Python 的代码块缩进规则不适用于多行字符串。
+
+字符串下标和切片：字符串像列表一样，使用下标和切片。可以将字符串'Hello world!'看成是一个列表，字符串中的每个字符都是一个表项，有对应的下标。
+
+字符串方法upper()、lower()、isupper()和islower()
+
+upper()和lower()字符串方法返回一个新字符串，其中原字符串的所有字母都被相应地转换为大写或小写。字符串中非字母字符保持不变。
+请注意，这些方法没有改变字符串本身，而是返回一个新字符串。如果你希望改变原来的字符串，就必须在该字符串上调用upper()或lower()，
+然后将这个新字符串赋给保存原来字符串的变量。这就是为什么必须使用 spam = spam.upper()，才能改变spam 中的字符串，而不是仅仅使用spam.upper()
+
+如果字符串至少有一个字母，并且所有字母都是大写或小写，isupper()和islower()方法就会相应地返回布尔值True。否则，该方法返回False。
+
+isX 字符串方法
+
+除了islower()和isupper()，还有几个字符串方法，它们的名字以is 开始。这些方法返回一个布尔值，描述了字符串的特点。下面是一些常用的isX 字符串方法：
+ isalpha()返回True，如果字符串只包含字母，并且非空；
+ isalnum()返回True，如果字符串只包含字母和数字，并且非空；
+ isdecimal()返回True，如果字符串只包含数字字符，并且非空；
+ isspace()返回True，如果字符串只包含空格、制表符和换行，并且非空；
+  istitle()返回True，如果字符串仅包含以大写字母开头、后面都是小写字母的单词。
+
+字符串方法startswith()和endswith()
+
+startswith()和endswith()方法返回True，如果它们所调用的字符串以该方法传入的字符串开始或结束。否则，方法返回False
+如果只需要检查字符串的开始或结束部分是否等于另一个字符串，而不是整个字符串，这些方法就可以替代等于操作符==，这很有用。
+
+字符串方法join()和split()
+
+如果有一个字符串列表，需要将它们连接起来，成为一个单独的字符串，join（）方法就很有用。join()在一个字符串上调用，参数是一个字符串列表，
+返回一个字符串。返回的字符串由传入的列表中每个字符串连接而成。
+>>> ', '.join(['cats', 'rats', 'bats'])
+'cats, rats, bats'
+>>> ' '.join(['My', 'name', 'is', 'Simon'])
+'My name is Simon'
+>>> 'ABC'.join(['My', 'name', 'is', 'Simon'])
+'MyABCnameABCisABCSimon'
+请注意，调用join()方法的字符串，被插入到列表参数中每个字符串的中间。例如，如果在', '字符串上调用join(['cats', 'rats', 'bats'])，
+返回的字符串就是'cats, rats, bats'。要记住，join()方法是针对一个字符串而调用的，并且传入一个列表值（很容易不小心用其他的方式调用它）。
+
+split()方法做的事情正好相反：它针对一个字符串调用，返回一个字符串列表。
+>>> 'My name is Simon'.split()
+['My', 'name', 'is', 'Simon']
+默认情况下，字符串'My name is Simon'按照各种空白字符分割，诸如空格、制表符或换行符。这些空白字符不包含在返回列表的字符串中。
+也可以向split()方法传入一个分割字符串，指定它按照不同的字符串分割。
+>>> 'MyABCnameABCisABCSimon'.split('ABC')
+['My', 'name', 'is', 'Simon']
+>>> 'My name is Simon'.split('m')
+['My na', 'e is Si', 'on']
+一个常见的split()用法，是按照换行符分割多行字符串。
+>>> spam = '''Dear Alice,
+How have you been? I am fine.
+There is a container in the fridge
+that is labeled "Milk Experiment".
+
+Please do not drink it.
+Sincerely,
+Bob'''
+>>> spam.split('\n')
+['Dear Alice,', 'How have you been? I am fine.', 'There is a container in the
+fridge', 'that is labeled "Milk Experiment".', '', 'Please do not drink it.',
+'Sincerely,', 'Bob']
+向split()方法传入参数’\n’，我们按照换行符分割变量中存储的多行字符串，返回列表中的每个表项，对应于字符串中的一行。
+
+用rjust()、ljust()和center()方法对齐文本
+
+rjust()和ljust()字符串方法返回调用它们的字符串的填充版本，通过插入空格来对齐文本。这两个方法的第一个参数是一个整数长度，用于对齐字符串。
+>>> 'Hello'.rjust(10)
+'    Hello'
+>>> 'Hello'.rjust(20)
+'            Hello'
+>>> 'Hello World'.rjust(20)
+'      Hello World'
+>>> 'Hello'.ljust(10)
+'Hello   '
+'Hello'.rjust(10)是说我们希望右对齐，将'Hello'放在一个长度为10 的字符串中。'Hello'有5 个字符，所以左边会加上5 个空格，
+得到一个10 个字符的字符串，实现'Hello'右对齐。
+rjust()和ljust()方法的第二个可选参数将指定一个填充字符，取代空格字符。
+>>> 'Hello'.rjust(20, '*')
+'***************Hello'
+>>> 'Hello'.ljust(20, '-')
+'Hello---------------'
+center()字符串方法与ljust()与rjust()类似，但它让文本居中，而不是左对齐或右对齐。
+>>> 'Hello'.center(20)
+' Hello '
+>>> 'Hello'.center(20, '=')
+'=======Hello========'
