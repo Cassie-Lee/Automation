@@ -1,0 +1,52 @@
+读写文件：
+当程序运行时，变量是保存数据的好方法，但如果希望程序结束后数据仍然保持，就需要将数据保存到文件中。你可以认为文件的内容是一个字符串值，大小可能有几个GB。
+
+文件与文件路径：
+文件夹名称和文件名在Windows 和OS X 上是不区分大小写的，但在Linux 上是区分大小写的。
+
+在Windows 上，路径书写使用倒斜杠作为文件夹之间的分隔符。但在OS X 和Linux 上，使用正斜杠作为它们的路径分隔符。如果想要程序运行在所有操作系统
+上，在编写Python 脚本时，就必须处理这两种情况。
+
+好在，用os.path.join()函数来做这件事很简单。如果将单个文件和路径上的文件夹名称的字符串传递给它，os.path.join()就会返回一个文件路径的字符串，
+包含正确的路径分隔符：
+>>> import os
+>>> os.path.join('usr', 'bin', 'spam')
+'usr\\bin\\spam'
+我在Windows 上运行这些交互式环境的例子，所以，os.path .join('usr', 'bin','spam')返回'usr\\bin\\spam'（请注意，倒斜杠有两个，因为每个倒斜杠需要
+由另一个倒斜杠字符来转义）。如果我在OS X 或Linux 上调用这个函数，该字符串就会是'usr/bin/spam'。
+如果需要创建文件名称的字符串，os.path.join()函数就很有用。这些字符串将传递给几个文件相关的函数。
+
+将一个文件名列表中的名称，添加到文件夹名称的末尾：
+>>> myFiles = ['accounts.txt', 'details.csv', 'invite.docx']
+>>> for filename in myFiles:
+print(os.path.join('C:\\Users\\asweigart', filename))
+C:\Users\asweigart\accounts.txt
+C:\Users\asweigart\details.csv
+C:\Users\asweigart\invite.docx
+
+有两种方法指定一个文件路径。
+• “绝对路径”，总是从根文件夹开始。
+• “相对路径”，它相对于程序的当前工作目录。
+还有点（.）和点点（..）文件夹。它们不是真正的文件夹，而是可以在路径中使用的特殊名称。单个的句点（“点”）用作文件夹目名称时，是“这个目录”的缩
+写。两个句点（“点点”）意思是父文件夹。
+相对路径开始处的.\是可选的。例如，.\spam.txt 和spam.txt 指的是同一个文件。
+
+用os.makedirs()创建新文件夹：
+程序可以用os.makedirs()函数创建新文件夹（目录）：
+>>> import os
+>>> os.makedirs('C:\\delicious\\walnut\\waffles')
+这不仅将创建C:\delicious 文件夹，也会在C:\delicious 下创建walnut 文件夹，并在C:\delicious\walnut 中创建waffles 文件夹。也就是说，
+os.makedirs()将创建所有必要的中间文件夹，目的是确保完整路径名存在。
+
+os.path 模块：
+os.path 模块包含了许多与文件名和文件路径相关的有用函数。例如，你已经使用了os.path.join()来构建所有操作系统上都有效的路径。因为os.path 
+是os 模块中的模块，所以只要执行import os 就可以导入它。如果你的程序需要处理文件、文件夹或文件路径，就可以参考本节中这些简短的例子。
+
+处理绝对路径和相对路径：
+os.path 模块提供了一些函数，返回一个相对路径和绝对路径，以及检查给定的路径是否为绝对路径。
+调用os.path.abspath(path)将返回参数的绝对路径的字符串。这是将相对路径转
+换为绝对路径的简便方法。
+• 调用os.path.isabs(path)，如果参数是一个绝对路径，就返回True，如果参数是
+一个相对路径，就返回False。
+• 调用os.path.relpath(path, start)将返回从start 路径到path 的相对路径的字符串。
+如果没有提供start，就使用当前工作目录作为开始路径。
