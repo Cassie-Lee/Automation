@@ -50,3 +50,111 @@ os.path 模块提供了一些函数，返回一个相对路径和绝对路径，
 一个相对路径，就返回False。
 • 调用os.path.relpath(path, start)将返回从start 路径到path 的相对路径的字符串。
 如果没有提供start，就使用当前工作目录作为开始路径。
+>>> os.path.abspath('.')
+'C:\\Python34'
+>>> os.path.abspath('.\\Scripts')
+'C:\\Python34\\Scripts'
+>>> os.path.isabs('.')
+False
+>>> os.path.isabs(os.path.abspath('.'))
+True
+因为在os.path.abspath()调用时，当前目录是C:\Python34，所以“点”文件夹指的是绝对路径'C:\\Python34'。
+
+在交互式环境中，输入以下对os.path.relpath()的调用：
+>>> os.path.relpath('C:\\Windows', 'C:\\')
+'Windows'
+>>> os.path.relpath('C:\\Windows', 'C:\\spam\\eggs')
+'..\\..\\Windows'
+>>> os.getcwd()
+'C:\\Python34'
+调用os.path.dirname(path)将返回一个字符串，它包含path 参数中最后一个斜杠之前的所有内容。调用os.path.basename(path)将返回一个字符串，
+它包含path 参数中最后一个斜杠之后的所有内容。
+>>> path = 'C:\\Windows\\System32\\calc.exe'
+>>> os.path.basename(path)
+'calc.exe'
+>>> os.path.dirname(path)
+'C:\\Windows\\System32'
+如果同时需要一个路径的目录名称和基本名称，就可以调用os.path.split()，获得这两个字符串的元组，像这样：
+>>> calcFilePath = 'C:\\Windows\\System32\\calc.exe'
+>>> os.path.split(calcFilePath)
+('C:\\Windows\\System32', 'calc.exe')
+请注意，可以调用os.path.dirname()和os.path.basename()，将它们的返回值放在一个元组中，从而得到同样的元组。
+>>> (os.path.dirname(calcFilePath), os.path.basename(calcFilePath))
+('C:\\Windows\\System32', 'calc.exe')
+但如果需要两个值，os.path.split()是很好的快捷方式。
+同时也请注意，os.path.split()不会接受一个文件路径并返回每个文件夹的字符串的列表。如果需要这样，请使用split()字符串方法，并根据os.path.sep 
+中的字符串进行分割。回忆一下，根据程序运行的计算机，os.path.sep 变量设置为正确的文件夹分割斜杠。
+>>> calcFilePath.split(os.path.sep)
+['C:', 'Windows', 'System32', 'calc.exe']
+在OS X 和Linux 系统上，返回的列表头上有一个空字符串：
+>>> '/usr/bin'.split(os.path.sep)
+['', 'usr', 'bin']
+split()字符串方法将返回一个列表，包含该路径的所有部分。如果向它传递os.path.sep，就能在所有操作系统上工作。
+
+查看文件大小和文件夹的内容
+一旦有办法处理文件路径，就可以开始搜集特定文件和文件夹的信息。os.path 模块提供了一些函数，用于查看文件的字节数以及给定文件夹中的文件和子文件夹。
+• 调用os.path.getsize(path)将返回path 参数中文件的字节数。
+• 调用os.listdir(path)将返回文件名字符串的列表，包含path 参数中的每个文件（请注意，这个函数在os 模块中，而不是os.path）：
+>>> os.path.getsize('C:\\Windows\\System32\\calc.exe')
+776192
+>>> os.listdir('C:\\Windows\\System32')
+['0409', '12520437.cpx', '12520850.cpx', '5U877.ax', 'aaclient.dll',
+--snip--
+'xwtpdui.dll', 'xwtpw32.dll', 'zh-CN', 'zh-HK', 'zh-TW', 'zipfldr.dll']
+可以看到，我的计算机上的calc.exe 程序是776192 字节。在我的C:\Windows\system32 下有许多文件。如果想知道这个目录下所有文件的总字节数，就可以同时
+使用os.path.getsize()和os.listdir()。
+>>> totalSize = 0
+>>> for filename in os.listdir('C:\\Windows\\System32'):
+totalSize = totalSize + os.path.getsize(os.path.join('C:\\Windows\\System32', filename))
+>>> print(totalSize)
+1117846456
+当循环遍历C:\Windows\System32 文件夹中的每个文件时，totalSize 变量依次增加每个文件的字节数。请注意，我在调用os.path.getsize()时，使用
+了os.path.join()来连接文件夹名称和当前的文件名。os.path.getsize()返回的整数添加到totalSize 中。在循环遍历所有文件后，我打印出totalSize，
+看看C:\Windows\System32 文件夹的总字节数。
+
+检查路径有效性：
+如果你提供的路径不存在，许多Python 函数就会崩溃并报错。os.path 模块提供了一些函数，用于检测给定的路径是否存在，以及它是文件还是文件夹。
+• 如果path 参数所指的文件或文件夹存在，调用os.path.exists(path)将返回True，否则返回False。
+• 如果path 参数存在，并且是一个文件，调用os.path.isfile(path)将返回True，否则返回False。
+• 如果path 参数存在，并且是一个文件夹，调用os.path.isdir(path)将返回True，否则返回False。
+>>> os.path.exists('C:\\Windows')
+True
+>>> os.path.exists('C:\\some_made_up_folder')
+False
+>>> os.path.isdir('C:\\Windows\\System32')
+True
+>>> os.path.isfile('C:\\Windows\\System32')
+False
+>>> os.path.isdir('C:\\Windows\\System32\\calc.exe')
+False
+>>> os.path.isfile('C:\\Windows\\System32\\calc.exe')
+True
+利用os.path.exists()函数，可以确定DVD 或闪存盘当前是否连在计算机上。例如，如果在Windows 计算机上，我想用卷名D:\检查一个闪存盘，可以这样做：
+>>> os.path.exists('D:\\')
+False
+不好！看起来我忘记插入闪存盘了。
+
+文件读写过程：
+
+在熟悉了处理文件夹和相对路径后，你就可以指定文件的位置，进行读写。接下来几节介绍的函数适用于纯文本文件。“纯文本文件”只包含基本文本字符，不包含字
+体、大小和颜色信息。带有.txt 扩展名的文本文件，以及带有.py 扩展名的Python 脚本文件，都是纯文本文件的例子。它们可以被Windows 的Notepad 或OS X 
+的TextEdit应用打开。你的程序可以轻易地读取纯文本文件的内容，将它们作为普通的字符串值。“二进制文件”是所有其他文件类型，诸如字处理文档、PDF、
+图像、电子表格和可执行程序。如果用Notepad 或TextEdit 打开一个二进制文件，它看起来就像乱码。
+
+读取文件内容：
+
+如果你希望将整个文件的内容读取为一个字符串值，就使用File 对象的read()方法：
+>>> helloContent = helloFile.read()
+>>> helloContent
+'Hello world!'
+如果你将文件的内容看成是单个大字符串，read()方法就返回保存在该文件中的这个字符串。或者，可以使用readlines()方法，从该文件取得一个字符串的
+列表。列表中的每个字符串就是文本中的每一行：
+>>> sonnetFile.readlines()
+[When, in disgrace with fortune and men's eyes,\n', ' I all alone beweep my
+outcast state,\n', And trouble deaf heaven with my bootless cries,\n', And
+look upon myself and curse my fate,']
+请注意，每个字符串值都以一个换行字符\n 结束。除了文件的最后一行。与单个大字符串相比，字符串的列表通常更容易处理。
+
+random.shuffle()函数
+http://www.runoob.com/python/func-number-shuffle.html
+
