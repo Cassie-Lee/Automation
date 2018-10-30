@@ -1,0 +1,193 @@
+webbrowser：是Python 自带的，打开浏览器获取指定页面。
+requests：从因特网上下载文件和网页。
+Beautiful Soup：解析HTML，即网页编写的格式。
+selenium：启动并控制一个Web 浏览器。selenium 能够填写表单，并模拟鼠标在这个浏览器中点击。
+
+查看网页的HTML 源代码：
+对于程序要处理的网页，你需要查看它的HTML 源代码。要做到这一点，在浏览器的任意网页上点击右键（或在OS X 上Ctrl-点击），选择View Source 或View page
+source，查看该页的 HTML 文本（参见图 11-3）。这是浏览器实际接收到的文本。浏览器知道如何通过这个HTML 显示或渲染网页。
+我强烈建议你查看一些自己喜欢的网站的HTML 源代码。在查看源代码时，如果你不能完全理解，也没有关系。你不需要完全掌握HTML，也能编写简单的Web 抓取程序，
+毕竟你不是要编写自己的网站。只需要足够的知识，就能从已有的网站中挑选数据。
+
+打开浏览器的开发者工具
+除了查看网页的源代码，你还可以利用浏览器的开发者工具，来检查页面的HTML。在Windows 版的Chrome 和IE 中，开发者工具已经安装了。可以按下F12，
+让它们出现（参见图11-4）。再次按下F12，可以让开发者工具消失。在Chrome 中，也可以选择ViewDeveloperDeveloper Tools，调出开发者工具。
+在OS X 中按下-Option-I，将打开Chrome 的开发者工具。对于Firefox，可以在Windows 和Linux 中需要按下Ctrl-Shift-C，或在OS X 中按
+下-option-C，调出开发者工具查看器。它的布局几乎与Chrome 的开发者工具一样。
+
+在Safari 中，打开Preferences 窗口，并在Advanced pane 选中Show Develop menuin the menu bar 选项。在它启用后，你可以按下-option-I，调出
+开发者工具。在浏览器中启用或安装了开发者工具之后，可以在网页中任何部分点击右键，在弹出菜单中选择Inspect Element，查看页面中这一部分对应的HTML。
+如果需要在Web 抓取程序中解析HTML，这很有帮助。
+
+不要用正则表达式来解析HTML
+在一个字符串中定位特定的一段HTML，这似乎很适合使用正则表达式。但是，我建议你不要这么做。HTML 的格式可以有许多不同的方式，并且仍然被认
+为是有效的HTML，但尝试用正则表达式来捕捉所有这些可能的变化，将非常繁琐，并且容易出错。专门用于解析HTML 的模块，诸如Beautiful Soup，将更不容
+易导致缺陷。在http://stackoverflow.com/a/1732454/1893164/，你会看到更充分的讨论，了解为什么不应该用正则表达式来解析HTML。
+
+使用开发者工具来寻找HTML元素
+程序利用requests 模块下载了一个网页之后，你会得到该页的HTML 内容，作为一个字符串值。现在你需要弄清楚，这段HTML的哪个部分对应于网页上你感兴趣的信息。
+这就是可以利用浏览器的开发者工具的地方。假定你需要编写一个程序，从http://weather.gov/获取天气预报数据。在写代码之前，先做一点调查。如果你访问该网
+站，并查找邮政编码94105，该网站将打开一个页面，显示该地区的天气预报。如果你想抓取那个邮政编码对应的气温信息，怎么办？右键点击它在页面的位
+置（或在OS X 上用Control-点击），在弹出的菜单中选择Inspect Element。这将打开开发者工具窗口，其中显示产生这部分网页的HTML。
+通过开发者工具，可以看到网页中负责气温部分的 HTML 是<p class= "myforecastcurrent-lrg">57°F</p>。这正是你要找的东西！看起来气温信息包含在一个
+<p>元素中，带有myforecast-current-lrg 类。既然你知道了要找的是什么，BeautifulSoup 模块就可以帮助你在这个字符串中找到它。
+
+用BeautifulSoup 模块解析HTML
+Beautiful Soup 是一个模块，用于从HTML 页面中提取信息（用于这个目的时，它比正则表达式好很多）。BeautifulSoup 模块的名称是bs4
+（表示Beautiful Soup，第4 版）。要安装它，需要在命令行中运行pip install beautifulsoup4。虽然安装时使用的名字是beautifulsoup4，但要导
+入它，就使用import bs4。
+在本章中，Beautiful Soup 的例子将解析（即分析并确定其中的一些部分）硬盘上的一个HTML 文件。在IDLE 中打开一个新的文件编辑器窗口，输入以下代码，并
+保存为example.html。或者，从http://nostarch.com/automatestuff/下载它。
+<!-- This is the example.html example file. -->
+<html><head><title>The Website Title</title></head>
+<body>
+<p>Download my <strong>Python</strong> book from <a href="http://
+inventwithpython.com">my website</a>.</p>
+<p class="slogan">Learn Python the easy way!</p>
+<p>By <span id="author">Al Sweigart</span></p>
+</body></html>
+你可以看到，既使一个简单的HTML 文件，也包含许多不同的标签和属性。对于复杂的网站，事情很快就变得令人困惑。好在，Beautiful Soup 让处理HTML 变
+得容易很多。
+
+从HTML 创建一个BeautifulSoup 对象
+bs4.BeautifulSoup()函数调用时需要一个字符串，其中包含将要解析的HTML。bs4.BeautifulSoup()函数返回一个BeautifulSoup 对象。在交互式环境中输入
+以下代码，同时保持计算机与因特网的连接：
+>>> import requests, bs4
+>>> res = requests.get('http://nostarch.com')
+>>> res.raise_for_status()
+>>> noStarchSoup = bs4.BeautifulSoup(res.text)
+>>> type(noStarchSoup)
+<class 'bs4.BeautifulSoup'>
+这段代码利用requests.get()函数从No Starch Press 网站下载主页，然后将响应结果的text 属性传递给bs4.BeautifulSoup()。它返回的BeautifulSoup 
+对象保存在变量noStarchSoup 中。也可以向bs4.BeautifulSoup()传递一个File 对象，从硬盘加载一个HTML 文件。
+在交互式环境中输入以下代码（确保example.html 文件在工作目录中）：
+>>> exampleFile = open('example.html')
+>>> exampleSoup = bs4.BeautifulSoup(exampleFile)
+>>> type(exampleSoup)
+<class 'bs4.BeautifulSoup'>
+有了BeautifulSoup 对象之后，就可以利用它的方法，定位HTML文档中的特定部分。
+
+用select()方法寻找元素：
+针对你要寻找的元素，调用method()方法，传入一个字符串作为CSS“选择器”，这样就可以取得Web 页面元素。选择器就像正则表达式：它们指定了要寻找的模
+式，在这个例子中，是在HTML 页面中寻找，而不是普通的文本字符串。
+大多数常用CSS 选择器的模式：
+传递给select()方法的选择器 将匹配…
+soup.select('div') 所有名为<div>的元素
+soup.select('#author') 带有id 属性为author 的元素
+soup.select('.notice') 所有使用CSS class 属性名为notice 的元素
+soup.select('div span') 所有在<div>元素之内的<span>元素
+soup.select('div > span') 所有直接在<div>元素之内的<span>元素，中间没有其他元素
+soup.select('input[name]') 所有名为<input>，并有一个name 属性，其值无所谓的元素
+soup.select('input[type="button"]') 所有名为<input>，并有一个type 属性，其值为button 的元素
+不同的选择器模式可以组合起来，形成复杂的匹配。例如，soup.select('p #author')将匹配所有id 属性为author 的元素，只要它也在一个<p>元素之内。
+select()方法将返回一个Tag 对象的列表，这是Beautiful Soup 表示一个HTML元素的方式。针对BeautifulSoup 对象中的HTML 的每次匹配，列表中都有
+一个Tag对象。Tag 值可以传递给str()函数，显示它们代表的HTML 标签。Tag 值也可以有attrs 属性，它将该Tag 的所有HTML 属性作为一个字典。利用前面
+的example.html文件，在交互式环境中输入以下代码：
+>>> import bs4
+>>> exampleFile = open('example.html')
+>>> exampleSoup = bs4.BeautifulSoup(exampleFile.read())
+>>> elems = exampleSoup.select('#author')
+>>> type(elems)
+<class 'list'>
+>>> len(elems)
+1
+>>> type(elems[0])
+<class 'bs4.element.Tag'>
+>>> elems[0].getText()
+'Al Sweigart'
+>>> str(elems[0])
+'<span id="author">Al Sweigart</span>'
+>>> elems[0].attrs
+{'id': 'author'}
+这段代码将带有 id="author"的元素，从示例 HTML 中找出来。我们使用select('#author')返回一个列表，其中包含所有带有id="author"的元素。我们将这个
+Tag 对象的列表保存在变量中elems，len(elems)告诉我们列表中只有一个Tag 对象，只有一次匹配。在该元素上调用getText()方法，返回该元素的文本，或内部
+的HTML。一个元素的文本是在开始和结束标签之间的内容：在这个例子中，就是'Al Sweigart'。将该元素传递给str()，这将返回一个字符串，其中包含开始和结
+束标签，以及该元素的文本。最后，attrs 给了我们一个字典，包含该元素的属性'id'，以及id 属性的值'author'。
+也可以从BeautifulSoup 对象中找出<p>元素。在交互式环境中输入以下代码：
+>>> pElems = exampleSoup.select('p')
+>>> str(pElems[0])
+'<p>Download my <strong>Python</strong> book from <a href="http://
+inventwithpython.com">my website</a>.</p>'
+>>> pElems[0].getText()
+'Download my Python book from my website.'
+>>> str(pElems[1])
+'<p class="slogan">Learn Python the easy way!</p>'
+>>> pElems[1].getText()
+'Learn Python the easy way!'
+>>> str(pElems[2])
+'<p>By <span id="author">Al Sweigart</span></p>'
+>>> pElems[2].getText()
+'By Al Sweigart'
+这一次，select()给我们一个列表，包含3 次匹配，我们将它保存在pElems 中。在pElems[0]、pElems[1]和pElems[2]上使用str()，将每个元素显示为
+一个字符串，并在每个元素上使用getText()，显示它的文本。
+
+通过元素的属性获取数据：
+Tag 对象的get()方法让我们很容易从元素中获取属性值。向该方法传入一个属性名称的字符串，它将返回该属性的值。利用example.html，在交互式环境中输入
+以下代码：
+>>> import bs4
+>>> soup = bs4.BeautifulSoup(open('example.html'))
+>>> spanElem = soup.select('span')[0]
+>>> str(spanElem)
+'<span id="author">Al Sweigart</span>'
+>>> spanElem.get('id')
+'author'
+>>> spanElem.get('some_nonexistent_addr') == None
+True
+>>> spanElem.attrs
+{'id': 'author'}
+这里，我们使用select()来寻找所有<span>元素，然后将第一个匹配的元素保存在spanElem 中。将属性名'id'传递给get()，返回该属性的值'author'。
+
+安装第三方模块：
+除了Python自带的标准库，其他开发者写了一些自己的模块，进一步扩展了Python 的功能。安装第三方模块的主要方法是使用Python 的pip 工具。
+这个工具从Python软件基金会的网站https://pypi.python.org/安全地下载Python 模块，并安装到您的计算机上。PyPI 或Python 包索引，就像
+是Python模块的免费应用程序商店。
+
+pip工具：
+pip工具的可执行文件在Windows 上称为pip，Linux 上称为pip3。在Windows 上，pip 位于C:\Python34\Scripts\pip.exe。Linux 上，
+它位于/usr/bin/pip3。
+虽然在Windows 和OS X 上pip 会随Python3.4 自动安装，但在Linux 上，必须单独安装。要在Ubuntu 或Debian Linux 上安装pip3，就打开一个新的
+终端窗口，输入get install python3-pip。要在Fedora Linux 上安装pip3，就在终端窗口输入installpython3 -pip。为了安装这个软件，需要输入
+计算机的管理员密码。
+
+安装第三方模块
+pip 工具需要在命令行中运行：向它传入install 命令，跟上想要安装的模块名称。例如，在Windows 上，会输入pip install ModuleName，其中ModuleName 
+是模块的名称。在OS X 和Linux，必须加sudo 前缀来运行pip3，授予管理权限来安装该模块。需要输入sudo pip3 install ModuleName。
+如果你已经安装了模块，但想升级到PyPI 上提供的最新版本，就运行pip install -U ModuleName（或在OS X 和Linux 上运行pip3 install –U ModuleName）。
+安装模块后，可以在交互式环境中运行import ModuleName，测试安装是否成功。如果未显示错误信息，就可以认为该模块已经成功安装。
+运行下面列出的命令，你可以安装本书中介绍的所有模块（请记住，如果在OSX 或Linux 上，用pip3 替代pip）。
+• pip install send2trash
+• pip install requests
+• pip install beautifulsoup4
+• pip install selenium
+• pip install openpyxl
+• pip install PyPDF2
+• pip install python-docx（安装python-docx，而不是docx）
+• pip install imapclient
+• pip install pyzmail
+• pip install twilio
+• pip install pillow
+• pip install pyobjc-core（仅在OS X 上）
+• pip install pyobjc（仅在OS X 上）
+• pip install python3-xlib（仅在Linux 上）
+• pip install pyautogui
+注意：对于OS X 用户：pyobjc 模块需要20 分钟或更长的时间来安装，因此，如果它需要一段时间，不要惊慌。也应该先安装pyobjc 核心模块，
+这将减少整体安装时间。
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
