@@ -158,3 +158,180 @@ look upon myself and curse my fate,']
 random.shuffle()函数
 http://www.runoob.com/python/func-number-shuffle.html
 
+shutil 模块
+shutil（或称为shell 工具）模块中包含一些函数，让你在Python 程序中复制、移动、改名和删除文件。要使用shutil 的函数，首先需要import shutil。
+
+复制文件和文件夹
+shutil 模块提供了一些函数，用于复制文件和整个文件夹。
+调用shutil.copy(source, destination)，将路径source 处的文件复制到路径destination处的文件夹（source 和destination 都是字符串）。
+如果destination 是一个文件名，它将作为被复制文件的新名字。该函数返回一个字符串，表示被复制文件的路径：
+>>> import shutil, os
+>>> os.chdir('C:\\')
+ >>> shutil.copy('C:\\spam.txt', 'C:\\delicious')
+'C:\\delicious\\spam.txt'
+ >>> shutil.copy('eggs.txt', 'C:\\delicious\\eggs2.txt')
+' C:\\delicious\\eggs2.txt'
+第一个shutil.copy()调用将文件C:\spam.txt 复制到文件夹C:\delicious。返回值是刚刚被复制的文件的路径。请注意，因为指定了一个文件夹作为目的地，原来
+的文件名spam.txt 就被用作新复制的文件名。第二个shutil.copy()调用也将文件C:\eggs.txt 复制到文件夹C:\delicious，但为新文件提供了一个名字
+eggs2.txt。shutil.copy()将复制一个文件，shutil.copytree()将复制整个文件夹，以及它包含的文件夹和文件。调用shutil.copytree(source, destination)，
+将路径source 处的文件夹，包括它的所有文件和子文件夹，复制到路径destination 处的文件夹。source 和destination 参数都是字符串。
+该函数返回一个字符串，是新复制的文件夹的路径。
+>>> import shutil, os
+>>> os.chdir('C:\\')
+>>> shutil.copytree('C:\\bacon', 'C:\\bacon_backup')
+'C:\\bacon_backup'
+shutil.copytree()调用创建了一个新文件夹，名为bacon_backup，其中的内容与原来的bacon 文件夹一样。现在你已经备份了非常非常宝贵的“bacon”。
+
+文件和文件夹的移动与改名
+调用shutil.move(source, destination)，将路径source 处的文件夹移动到路径destination，并返回新位置的绝对路径的字符串。
+如果destination 指向一个文件夹，source 文件将移动到destination 中，并保持原来的文件名：
+>>> import shutil
+>>> shutil.move('C:\\bacon.txt', 'C:\\eggs')
+'C:\\eggs\\bacon.txt'
+假定在C:\目录中已存在一个名为eggs 的文件夹，这个shutil.move()调用就是说，“将C:\bacon.txt 移动到文件夹C:\eggs 中。
+如果在C:\eggs 中原来已经存在一个文件bacon.txt，它就会被覆写。因为用这种方式很容易不小心覆写文件，所以在使用move()时应该注意。
+destination 路径也可以指定一个文件名。在下面的例子中，source 文件被移动并改名：
+>>> shutil.move('C:\\bacon.txt', 'C:\\eggs\\new_bacon.txt')
+'C:\\eggs\\new_bacon.txt'
+这一行是说，“将C:\bacon.txt 移动到文件夹C:\eggs，完成之后，将bacon.txt文件改名为new_bacon.txt。”
+
+前面两个例子都假设在C:\目录下有一个文件夹eggs。但是如果没有eggs 文件夹，move()就会将bacon.txt 改名，变成名为eggs 的文件。
+>>> shutil.move('C:\\bacon.txt', 'C:\\eggs')
+'C:\\eggs'
+这里，move()在C:\目录下找不到名为eggs 的文件夹，所以假定destination 指的是一个文件，而非文件夹。所以bacon.txt 文本文件被改名为eggs
+（没有.txt 文件扩展名的文本文件），但这可能不是你所希望的！这可能是程序中很难发现的缺陷，因为move()调用会很开心地做一些事情，但和你所期望的
+完全不同。这也是在使用move()时要小心的另一个理由。最后，构成目的地的文件夹必须已经存在，否则Python 会抛出异常。
+>>> shutil.move('spam.txt', 'c:\\does_not_exist\\eggs\\ham')
+Traceback (most recent call last):
+File "C:\Python34\lib\shutil.py", line 521, in move
+os.rename(src, real_dst)
+FileNotFoundError: [WinError 3] The system cannot find the path specified:
+'spam.txt' -> 'c:\\does_not_exist\\eggs\\ham'
+During handling of the above exception, another exception occurred:
+Traceback (most recent call last):
+File "<pyshell#29>", line 1, in <module>
+shutil.move('spam.txt', 'c:\\does_not_exist\\eggs\\ham')
+File "C:\Python34\lib\shutil.py", line 533, in move
+copy2(src, real_dst)
+File "C:\Python34\lib\shutil.py", line 244, in copy2
+copyfile(src, dst, follow_symlinks=follow_symlinks)
+File "C:\Python34\lib\shutil.py", line 108, in copyfile
+with open(dst, 'wb') as fdst:
+FileNotFoundError: [Errno 2] No such file or directory: 'c:\\does_not_exist\\
+eggs\\ham'
+Python 在does_not_exist 目录中寻找eggs 和ham。它没有找到不存在的目录，所以不能将spam.txt 移动到指定的路径。
+
+永久删除文件和文件夹：
+利用os 模块中的函数，可以删除一个文件或一个空文件夹。但利用shutil 模块，可以删除一个文件夹及其所有的内容。
+• 用os.unlink(path)将删除path 处的文件。
+• 调用os.rmdir(path)将删除path 处的文件夹。该文件夹必须为空，其中没有任何文件和文件夹。
+• 调用shutil.rmtree(path)将删除path 处的文件夹，它包含的所有文件和文件夹都会被删除。
+在程序中使用这些函数时要小心！可以第一次运行程序时，注释掉这些调用，并且加上print()调用，显示会被删除的文件。这样做是一个好主意。下面有一个
+Python 程序，本来打算删除具有.txt 扩展名的文件，但有一处录入错误（用粗体突出显示），结果导致它删除了.rxt 文件。
+import os
+for filename in os.listdir():
+if filename.endswith('.rxt'):
+os.unlink(filename)
+如果你有某些重要的文件以.rxt 结尾，它们就会被不小心永久地删除。作为替代，你应该先运行像这样的程序：
+import os
+for filename in os.listdir():
+if filename.endswith('.rxt'):
+#os.unlink(filename)
+print(filename)
+现在os.unlink()调用被注释掉，所以Python 会忽略它。作为替代，你会打印出将被删除的文件名。先运行这个版本的程序，你就会知道，你不小心告诉程序要删
+除.rxt 文件，而不是.txt 文件。在确定程序按照你的意图工作后， 删除print(filename) 代码行， 取消os.unlink(filename)代码行的注释。然后再次
+运行该程序，实际删除这些文件。
+
+用send2trash 模块安全地删除
+因为Python 内建的shutil.rmtree()函数不可恢复地删除文件和文件夹，所以用起来可能有危险。删除文件和文件夹的更好方法，是使用第三方的send2trash 模块。
+你可以在终端窗口中运行pip install send2trash，安装该模块
+利用send2trash，比Python 常规的删除函数要安全得多，因为它会将文件夹和文件发送到计算机的垃圾箱或回收站，而不是永久删除它们。如果因程序缺陷而用
+send2trash 删除了某些你不想删除的东西，稍后可以从垃圾箱恢复。
+>>> import send2trash
+>>> baconFile = open('bacon.txt', 'a') # creates the file
+>>> baconFile.write('Bacon is not a vegetable.')
+25
+>>> baconFile.close()
+>>> send2trash.send2trash('bacon.txt')
+一般来说，总是应该使用send2trash.send2trash()函数来删除文件和文件夹。虽然它将文件发送到垃圾箱，让你稍后能够恢复它们，但是这不像永久删除文件，不
+会释放磁盘空间。如果你希望程序释放磁盘空间，就要用os 和shutil 来删除文件和文件夹。请注意，send2trash()函数只能将文件送到垃圾箱，不能从中恢复文件。
+
+遍历目录树：
+假定你希望对某个文件夹中的所有文件改名，包括该文件夹中所有子文件夹中的所有文件。也就是说，你希望遍历目录树，处理遇到的每个文件。写程序完成这
+件事，可能需要一些技巧。好在，Python 提供了一个函数，替你处理这个过程。
+import os
+for folderName, subfolders, filenames in os.walk('C:\\delicious'):
+162 Python 编程快速上手——让繁琐工作自动化
+print('The current folder is ' + folderName)
+for subfolder in subfolders:
+print('SUBFOLDER OF ' + folderName + ': ' + subfolder)
+for filename in filenames:
+print('FILE INSIDE ' + folderName + ': '+ filename)
+print('')
+os.walk()函数被传入一个字符串值，即一个文件夹的路径。你可以在一个for循环语句中使用os.walk()函数，遍历目录树，就像使用range()函数遍历一个范围的
+数字一样。不像range()，os.walk()在循环的每次迭代中，返回3 个值：
+1．当前文件夹名称的字符串。
+2．当前文件夹中子文件夹的字符串的列表。
+3．当前文件夹中文件的字符串的列表。
+所谓当前文件夹，是指for 循环当前迭代的文件夹。程序的当前工作目录，不会因为os.walk()而改变。就像你可以在代码for i in range(10):中选择变量
+名称i 一样，你也可以选择前面列出来的3 个字的变量名称。我通常使用foldername、subfolders 和filenames。运行该程序，它的输出如下：
+The current folder is C:\delicious
+SUBFOLDER OF C:\delicious: cats
+SUBFOLDER OF C:\delicious: walnut
+FILE INSIDE C:\delicious: spam.txt
+The current folder is C:\delicious\cats
+FILE INSIDE C:\delicious\cats: catnames.txt
+FILE INSIDE C:\delicious\cats: zophie.jpg
+The current folder is C:\delicious\walnut
+SUBFOLDER OF C:\delicious\walnut: waffles
+The current folder is C:\delicious\walnut\waffles
+FILE INSIDE C:\delicious\walnut\waffles: butter.txt.
+因为os.walk()返回字符串的列表，保存在subfolder 和filename 变量中，所以你可以在它们自己的for 循环中使用这些列表。用你自己定制的代码，取代print()函
+数调用（或者如果不需要，就删除for 循环）。
+
+用zipfile 模块压缩文件：
+利用zipfile 模块中的函数，Python 程序可以创建和打开（或解压）ZIP 文件。
+
+读取ZIP 文件：
+要读取ZIP 文件的内容，首先必须创建一个ZipFile 对象（请注意大写首字母Z和F）。
+要创建一个ZipFile对象，就调用zipfile.ZipFile()函数，向它传入一个字符串，表示.zip 文件的文件名。
+请注意，zipfile 是Python 模块的名称，ZipFile()是函数的名称。
+>>> import zipfile, os
+>>> os.chdir('C:\\') # move to the folder with example.zip
+>>> exampleZip = zipfile.ZipFile('example.zip')
+>>> exampleZip.namelist()
+['spam.txt', 'cats/', 'cats/catnames.txt', 'cats/zophie.jpg']
+>>> spamInfo = exampleZip.getinfo('spam.txt')
+>>> spamInfo.file_size
+13908
+>>> spamInfo.compress_size
+3828
+>>> 'Compressed file is %sx smaller!' % (round(spamInfo.file_size / spamInfo.compress_size, 2))
+'Compressed file is 3.63x smaller!'
+>>> exampleZip.close()
+ZipFile 对象有一个namelist()方法，返回ZIP 文件中包含的所有文件和文件夹的字符串的列表。这些字符串可以传递给ZipFile 对象的getinfo()方法，
+返回一个关于特定文件的ZipInfo 对象。ZipInfo 对象有自己的属性，诸如表示字节数的file_size和compress_size，它们分别表示原来文件大小和压缩后
+文件大小。ZipFile 对象表示整个归档文件，而ZipInfo 对象则保存该归档文件中每个文件的有用信息。处的命令计算出example.zip 压缩的效率，用压缩后
+文件的大小除以原来文件164的大小，并以%s 字符串格式打印出这一信息。
+
+从ZIP 文件中解压缩：
+ZipFile 对象的extractall()方法从ZIP 文件中解压缩所有文件和文件夹，放到当前工作目录中：
+>>> import zipfile, os
+>>> os.chdir('C:\\') # move to the folder with example.zip
+>>> exampleZip = zipfile.ZipFile('example.zip')
+ >>> exampleZip.extractall()
+>>> exampleZip.close()
+运行这段代码后，example.zip 的内容将被解压缩到C:\。或者，你可以向extractall()传递的一个文件夹名称，它将文件解压缩到那个文件夹，而不是当前工作
+目录。如果传递给extractall()方法的文件夹不存在，它会被创建。例如，如果你用exampleZip.extractall('C:\\ delicious')取代处的调用，代码就会从
+example.zip 中解压缩文件，放到新创建的C:\delicious 文件夹中。
+ZipFile 对象的extract()方法从ZIP 文件中解压缩单个文件：
+>>> exampleZip.extract('spam.txt')
+'C:\\spam.txt'
+>>> exampleZip.extract('spam.txt', 'C:\\some\\new\\folders')
+'C:\\some\\new\\folders\\spam.txt'
+>>> exampleZip.close()
+传递给extract()的字符串，必须匹配namelist()返回的字符串列表中的一个。或者，你可以向extract()传递第二个参数，将文件解压缩到指定的文件夹，而不是当
+前工作目录。如果第二个参数指定的文件夹不存在，Python 就会创建它。extract()的返回值是被压缩后文件的绝对路径。
+
+
+
