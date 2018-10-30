@@ -1,0 +1,270 @@
+项目规划：
+
+项目1：Collatz 序列
+描述：编写一个名为collatz()的函数，它有一个名为number 的参数。如果参数是偶数，那么collatz()就打印出number // 2，并返回该值。如果number 是奇数，
+collatz()就打印并返回3 * number + 1。然后编写一个程序，让用户输入一个整数，并不断对这个数调用collatz()，直到函数返回值１（令人惊奇的是，这个序列
+对于任何整数都有效，利用这个序列，你迟早会得到1！既使数学家也不能确定为什么。你的程序在研究所谓的“Collatz序列”，它有时候被称为“最简单的、不可能的
+数学问题”）。记得将input()的返回值用int()函数转成一个整数，否则它会是一个字符串。
+提示：如果number % 2 == 0，整数number 就是偶数，如果number % 2 == 1，它就是奇数。
+这个程序的输出看起来应该像这样：
+Enter number:
+3
+10
+5
+16
+8
+4
+2
+1
+
+项目2：输入验证
+描述：在前面的项目中添加try 和except 语句，检测用户是否输入了一个非整数的字符串。正常情况下，int()函数在传入一个非整数字符串时，会产生
+ValueError 错误，比如int('puppy')。在except 子句中，向用户输出一条信息，告诉他们必须输入一个整数。
+
+项目3：逗号代码
+描述：假定有下面这样的列表：spam = ['apples', 'bananas', 'tofu', 'cats']。编写一个函数，它以一个列表值作为参数，返回一个字符串。该字符串包含所
+有表项，表项之间以逗号和空格分隔，并在最后一个表项之前插入and。例如，将前面的spam 列表传递给函数，将返回'apples, bananas, tofu, and cats'。
+但你的函数应该能够处理传递给它的任何列表。
+
+项目4：口令保管箱
+你可能在许多不同网站上拥有账号，每个账号使用相同的口令是个坏习惯。如果这些网站中任何一个有安全漏洞，黑客就会知道你所有的其他账号的口令。最好
+是在你的计算机上，使用口令管理器软件，利用一个主控口令，解锁口令管理器。然后将某个账户口令拷贝到剪贴板，再将它粘贴到网站的口令输入框。
+你在这个例子中创建的口令管理器程序并不安全，但它基本展示了这种程序的工作原理。
+第1 步：程序设计和数据结构
+你希望用一个命令行参数来运行这个程序，该参数是账号的名称。例如，账号的口令将拷贝到剪贴板，这样用户就能将它粘贴到口令输入框。通过这种方式，用
+户可以有很长而复杂的口令，又不需要记住它们。
+打开一个新的文件编辑器窗口，将该程序保存为pw.py。程序开始时需要有一行#!，并且应该写一些注释，简单描述该程序。因为你希望关联每个
+账号的名称及其口令，所以可以将这些作为字符串保存在字典中。字典将是组织你的账号和口令数据的数据结构。让你的程序看起来像下面这样：
+#! python3
+# pw.py - An insecure password locker program.
+PASSWORDS = {'email': 'F7minlBDDuvMJuxESSKHFhTxFtjVB6',
+'blog': 'VmALvQyKAxiVH5G8v01if1MLZF3sdt',
+'luggage': '12345'}
+第2 步：处理命令行参数
+命令行参数将存储在变量sys.argv 中（关于如何在程序中使用命令行参数，更多信息请参见附录B）。sys.argv 列表中的第一项总是一个字符串，它包含程序的
+文件名（'pw.py'）。第二项应该是第一个命令行参数。对于这个程序，这个参数就是账户名称，你希望获取它的口令。因为命令行参数是必须的，所以如果用户
+忘记添加参数（也就是说，如果列表中少于两个值），你就显示用法信息。让你的程序看起来像下面这样：
+#! python3
+# pw.py - An insecure password locker program.
+PASSWORDS = {'email': 'F7minlBDDuvMJuxESSKHFhTxFtjVB6',
+'blog': 'VmALvQyKAxiVH5G8v01if1MLZF3sdt',
+'luggage': '12345'}
+import sys
+if len(sys.argv) < 2:
+print('Usage: python pw.py [account] - copy account password')
+sys.exit()
+account = sys.argv[1] # first command line arg is the account name
+第3 步：复制正确的口令
+既然账户名称已经作为字符串保存在变量account 中，你就需要看看它是不是PASSWORDS 字典中的键。如果是，你希望利用pyperclip.copy()，将该键的值复制
+到剪贴板（既然用到了pyperclip 模块，就需要导入它）。请注意，实际上不需要account变量，你可以在程序中所有使用account 的地方，直接使用sys.argv[1]。
+但名为account的变量更可读，不像是神秘的sys.argv[1]。让你的程序看起来像这样：
+#! python3
+# pw.py - An insecure password locker program.
+PASSWORDS = {'email': 'F7minlBDDuvMJuxESSKHFhTxFtjVB6',
+'blog': 'VmALvQyKAxiVH5G8v01if1MLZF3sdt',
+'luggage': '12345'}
+import sys, pyperclip
+if len(sys.argv) < 2:
+print('Usage: py pw.py [account] - copy account password')
+sys.exit()
+account = sys.argv[1] # first command line arg is the account name
+if account in PASSWORDS:
+pyperclip.copy(PASSWORDS[account])
+print('Password for ' + account + ' copied to clipboard.')
+else:
+print('There is no account named ' + account)
+这段新代码在PASSWORDS 字典中查找账户名称。如果该账号名称是字典中的键，我们就取得该键对应的值，将它复制到剪贴板，然后打印一条消息，说我们已
+经复制了该值。否则，我们打印一条消息，说没有这个名称的账号，这就是完整的脚本。现在你就有了一种快速的方式，将账号的口令复制到剪贴板。如果需要
+更新口令，就必须修改源代码的PASSWORDS 字典中的值。当然，你可能不希望把所有的口令都放在一个地方，让某人能够轻易地复制。
+但你可以修改这个程序，利用它快速地将普通文本复制到剪贴板。假设你需要发出一些电子邮件，它们有许多同样的段落。你可以将每个段落作为一个值，放在
+PASSWORDS 字典中（此时你可能希望对这个字典重命名），然后你就有了一种方式，快速地选择一些标准的文本，并复制到剪贴板。
+在Windows 上，你可以创建一个批处理文件，利用Win-R 运行窗口，来运行这个程序（关于批处理文件的更多信息，参见附录B）。在文件编辑器中输入以下
+代码，保存为pw.bat，放在C:\Windows 目录下：
+@py.exe C:\Python34\pw.py %*
+@pause
+有了这个批处理文件，在Windows 上运行口令保存程序，就只要按下Win-R，再输入pw <account name>。
+
+项目5：在Wiki 标记中添加无序列表
+在编辑一篇维基百科的文章时，你可以创建一个无序列表，即让每个列表项占据一行，并在前面放置一个星号。但是假设你有一个非常大的列表，希望添加前面
+的星号。你可以在每一行开始处输入这些星号，一行接一行。或者也可以用一小段Python 脚本，将这个任务自动化。
+bulletPointAdder.py 脚本将从剪贴板中取得文本，在每一行开始处加上星号和空格，然后将这段新的文本贴回到剪贴板。例如，如果我将下面的文本复制到剪贴板：
+Lists of animals
+Lists of aquarium life
+Lists of biologists by author abbreviation
+Lists of cultivars
+然后运行bulletPointAdder.py 程序，剪贴板中就会包含下面的内容：
+* Lists of animals
+* Lists of aquarium life
+* Lists of biologists by author abbreviation
+* Lists of cultivars
+这段前面加了星号的文本，就可以粘贴回维基百科的文章中，成为一个无序列表。
+第1 步：从剪贴板中复制和粘贴
+你希望bulletPointAdder.py 程序完成下列事情：
+1．从剪贴板粘贴文本；
+2．对它做一些处理；
+3．将新的文本复制到剪贴板。
+第2 步有一点技巧，但第1 步和第3 步相当简单，它们只是利用了pyperclip.copy()和pyperclip.paste()函数。现在，我们先写出程序中第1 步和第3 
+步的部分。输入以下代码，将程序保存为bulletPointAdder.py：
+#! python3
+# bulletPointAdder.py - Adds Wikipedia bullet points to the start
+# of each line of text on the clipboard.
+import pyperclip
+text = pyperclip.paste()
+# TODO: Separate lines and add stars.
+pyperclip.copy(text)
+TODO 注释是提醒，你最后应该完成这部分程序。下一步实际上就是实现程序的这个部分。
+第2 步：分离文本中的行，并添加星号
+调用pyperclip.paste()将返回剪贴板上的所有文本，结果是一个大字符串。如果我们使用“List of Lists of Lists”的例子，保存在text 中的字符串就像这样：
+'Lists of animals\nLists of aquarium life\nLists of biologists by author
+abbreviation\nLists of cultivars'
+在打印到剪贴板，或从剪贴板粘贴时，该字符串中的\n 换行字符，让它能显示为多行。在这一个字符串中有许多“行”。你想要在每一行开始处添加一个星号。
+你可以编写代码，查找字符串中每个\n 换行字符，然后在它后面添加一个星号。但更容易的做法是，使用split()方法得到一个字符串的列表，其中每个表项就是原
+来字符串中的一行，然后在列表中每个字符串前面添加星号。让程序看起来像这样：
+#! python3
+# bulletPointAdder.py - Adds Wikipedia bullet points to the start
+# of each line of text on the clipboard.
+import pyperclip
+text = pyperclip.paste()
+# Separate lines and add stars.
+lines = text.split('\n')
+for i in range(len(lines)): # loop through all indexes in the "lines" list
+lines[i] = '* ' + lines[i] # add star to each string in "lines" list
+pyperclip.copy(text)
+我们按换行符分割文本，得到一个列表，其中每个表项是文本中的一行。我们将列表保存在lines 中，然后遍历lines 中的每个表项。对于每一行，我们在开始处
+添加一个新号和一个空格。现在lines 中的每个字符串都以星号开始。
+第3 步：连接修改过的行
+lines 列表现在包含修改过的行，每行都以星号开始。但pyperclip.copy()需要一个字符串，而不是字符串的列表。要得到这个字符串，就要将lines 传递给join 
+方法，连接列表中字符串。让你的程序看起来像这样：
+#! python3
+# bulletPointAdder.py - Adds Wikipedia bullet points to the start
+# of each line of text on the clipboard.
+import pyperclip
+text = pyperclip.paste()
+# Separate lines and add stars.
+lines = text.split('\n')
+for i in range(len(lines)): # loop through all indexes for "lines" list
+lines[i] = '* ' + lines[i] # add star to each string in "lines" list
+text = '\n'.join(lines)
+pyperclip.copy(text)
+运行这个程序，它将取代剪贴板上的文本，新的文本每一行都以星号开始。现在程序完成了，可以在剪贴板中复制一些文本，试着运行它。即使不需要自动化这样一个专
+门的任务，也可能想要自动化某些其他类型的文本操作，诸如删除每行末尾的空格，或将文本转换成大写或小写。不论你的需求是什么，都可以使用剪贴板作为输入和输出。
+
+项目6：电话号码和E-mail 地址提取程序
+假设你有一个无聊的任务，要在一篇长的网页或文章中，找出所有电话号码和邮件地址。如果手动翻页，可能需要查找很长时间。如果有一个程序，可以在剪贴
+板的文本中查找电话号码和E-mail 地址，那你就只要按一下Ctrl-A 选择所有文本，按下Ctrl-C 将它复制到剪贴板，然后运行你的程序。它会用找到的电话号码
+和E-mail地址，替换掉剪贴板中的文本。当你开始接手一个新项目时，很容易想要直接开始写代码。但更多的时候，最好是后退一步，考虑更大的图景。我建议先
+草拟高层次的计划，弄清楚程序需要做什么。暂时不要思考真正的代码，稍后再来考虑。现在，先关注大框架。例如，你的电话号码和E-mail 地址提取程序需要
+完成以下任务：
+ 从剪贴板取得文本。
+ 找出文本中所有的电话号码和E-mail 地址。
+ 将它们粘贴到剪贴板。
+现在你可以开始思考，如何用代码来完成工作。代码需要做下面的事情：
+ 使用pyperclip 模块复制和粘贴字符串。
+ 创建两个正则表达式，一个匹配电话号码，另一个匹配E-mail 地址。
+ 对两个正则表达式，找到所有的匹配，而不只是第一次匹配。
+ 将匹配的字符串整理好格式，放在一个字符串中，用于粘贴。
+ 如果文本中没有找到匹配，显示某种消息。
+这个列表就像项目的路线图。在编写代码时，可以独立地关注其中的每一步。
+每一步都很好管理。它的表达方式让你知道在Python 中如何去做。
+第1 步：为电话号码创建一个正则表达式
+首先，你需要创建一个正则表达式来查找电话号码。创建一个新文件，输入以下代码，保存为phoneAndEmail.py：
+#! python3
+# phoneAndEmail.py - Finds phone numbers and email addresses on the clipboard.
+import pyperclip, re
+phoneRegex = re.compile(r'''(
+(\d{3}|\(\d{3}\))? # area code
+(\s|-|\.)? # separator
+(\d{3}) # first 3 digits
+(\s|-|\.) # separator
+(\d{4}) # last 4 digits
+(\s*(ext|x|ext.)\s*(\d{2,5}))? # extension
+)''', re.VERBOSE)
+# TODO: Create email regex.
+# TODO: Find matches in clipboard text.
+# TODO: Copy results to the clipboard.
+TODO 注释仅仅是程序的框架。当编写真正的代码时，它们会被替换掉。电话号码从一个“可选的”区号开始，所以区号分组跟着一个问号。因为区号
+可能只是3 个数字（即\d{3}），或括号中的3 个数字（即\(\d{3}\)），所以应该用管道符号连接这两部分。可以对这部分多行字符串加上正则表达式注释
+# Area code，帮助你记忆(\d{3}|\(\d{3}\))?要匹配的是什么。电话号码分割字符可以是空格（\s）、短横（-）或句点（.），所以这些部分也应
+该用管道连接。这个正则表达式接下来的几部分很简单：3 个数字，接下来是另一个分割符，接下来是4 个数字。最后的部分是可选的分机号，包括任意数目的空格，
+接着ext、x 或ext.，再接着2 到5 位数字。
+第2 步：为E-mail 地址创建一个正则表达式
+还需要一个正则表达式来匹配E-mail 地址。让你的程序看起来像这样：
+#! python3
+# phoneAndEmail.py - Finds phone numbers and email addresses on the clipboard.
+import pyperclip, re
+phoneRegex = re.compile(r'''(
+--snip--
+# Create email regex.
+emailRegex = re.compile(r'''(
+ [a-zA-Z0-9._%+-]+ # username
+ @ # @ symbol
+ [a-zA-Z0-9.-]+ # domain name
+(\.[a-zA-Z]{2,4}) # dot-something
+)''', re.VERBOSE)
+# TODO: Find matches in clipboard text.
+# TODO: Copy results to the clipboard.
+E-mail 地址的用户名部分是一个或多个字符，字符可以包括：小写和大写字母、数字、句点、下划线、百分号、加号或短横。可以将所有这些放入一个字符分
+类：[a-zA-Z0-9._%+-]。域名和用户名用@符号分割，域名允许的字符分类要少一些，只允许字母、数字、句点和短横：[a-zA-Z0-9.-]。最后是“dot-com”部分
+（技术上称为“顶级域名”），它实际上可以是“dot-anything”。它有2 到4 个字符。E-mail 地址的格式有许多奇怪的规则。这个正则表达式不会匹配所有可能的、
+有效的E-mail 地址，但它会匹配你遇到的大多数典型的电子邮件地址。
+第3 步：在剪贴板文本中找到所有匹配
+既然已经指定了电话号码和电子邮件地址的正则表达式，就可以让 Python 的re
+模块做辛苦的工作，查找剪贴板文本中所有的匹配。pyperclip.paste()函数将取得一个
+字符串，内容是剪贴板上的文本，findall()正则表达式方法将返回一个元组的列表。
+让你的程序看起来像这样：
+#! python3
+# phoneAndEmail.py - Finds phone numbers and email addresses on the clipboard.
+import pyperclip, re
+phoneRegex = re.compile(r'''(
+--snip--
+# Find matches in clipboard text.
+text = str(pyperclip.paste())
+ matches = []
+ for groups in phoneRegex.findall(text):
+phoneNum = '-'.join([groups[1], groups[3], groups[5]])
+if groups[8] != '':
+phoneNum += ' x' + groups[8]
+matches.append(phoneNum)
+ for groups in emailRegex.findall(text):
+matches.append(groups[0])
+# TODO: Copy results to the clipboard.
+每个匹配对应一个元组，每个元组包含正则表达式中每个分组的字符串。回忆一下，分组0 匹配整个正则表达式，所以在元组下标0 处的分组，就是你感兴趣的内容。
+在处可以看到，你将所有的匹配保存在名为matches 的列表变量中。它从一个空列表开始，经过几个for 循环。对于E-mail 地址，你将每次匹配的分组0 添加
+到列表中。对于匹配的电话号码，你不想只是添加分组0。虽然程序可以“检测”几种不同形式的电话号码，你希望添加的电话号码是唯一的、标准的格式。
+phoneNum 变量包含一个字符串，它由匹配文本的分组1、3、5 和8 构成。（这些分组是区号、前3 个数字、后4 个数字和分机号。）
+第4 步：所有匹配连接成一个字符串，复制到剪贴板
+现在，E-mail 地址和电话号码已经作为字符串列表放在matches 中，你希望将它们复制到剪贴板。pyperclip.copy()函数只接收一个字符串值，而不是字符串的列
+表，所以你在matches 上调用join()方法。为了更容易看到程序在工作，让我们将所有找到的匹配都输出在终端上。如果没有找到电话号码或E-mail 地址，程序
+应该告诉用户。让你的程序看起来像这样：
+#! python3
+# phoneAndEmail.py - Finds phone numbers and email addresses on the clipboard.
+--snip--
+for groups in emailRegex.findall(text):
+matches.append(groups[0])
+# Copy results to the clipboard.
+if len(matches) > 0:
+pyperclip.copy('\n'.join(matches))
+print('Copied to clipboard:')
+print('\n'.join(matches))
+else:
+print('No phone numbers or email addresses found.')
+第5 步：运行程序
+作为一个例子，打开你的Web 浏览器，访问No Starch Press 的联系页面
+http://www.nostarch.com/contactus.htm。按下Ctrl-A 选择该页的所有文本，按下Ctrl-C
+将它复制到剪贴板。运行这个程序，输出看起来像这样：
+Copied to clipboard:
+800-420-7240
+415-863-9900
+415-863-9950
+info@nostarch.com
+media@nostarch.com
+academic@nostarch.com
+help@nostarch.com
+第6 步：类似程序的构想
+识别文本的模式（并且可能用sub()方法替换它们）有许多不同潜在的应用。
+ 寻找网站的URL，它们以http://或https://开始。
+ 整理不同日期格式的日期（诸如3/14/2015、03-14-2015 和2015/3/14），用唯一的标准格式替代。
+ 删除敏感的信息，诸如社会保险号或信用卡号。
+ 寻找常见打字错误，诸如单词间的多个空格、不小心重复的单词，或者句子末尾处多个感叹号。它们很烦人！！
+
+
