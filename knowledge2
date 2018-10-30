@@ -128,3 +128,5 @@ logging.basicConfig(filename='myProgramLog.txt', level=logging.DEBUG, format='
 日志信息将被保存到myProgramLog.txt 文件中。虽然日志消息很有用，但它们可能塞满屏幕，让你很难读到程序的输出。将日志信息写入到文件，让屏幕保持干
 净，又能保存信息，这样在运行程序后，可以阅读这些信息。可以用任何文件编辑器打开这个文本文件，诸如Notepad 或TextEdit。
 
+通常，你不仅需要对一个文件夹中的文件执行这些操作，而是对所有下级子文件夹执行操作。os.walk()函数将处理这个艰苦工作，遍历文件夹，这样你就可以专
+注于程序需要对其中的文件做什么。
