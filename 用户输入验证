@@ -1,0 +1,27 @@
+描述：添加try 和except 语句，检测用户是否输入了一个非整数的字符串。正常情况下，int()函数在传入一个非整数字符串时，会产生
+ValueError 错误，比如int('puppy')。在except 子句中，向用户输出一条信息，告诉他们必须输入一个整数。
+
+代码：
+def collatz(number):
+    if number%2==0:
+        result=number//2
+        print(result)
+        return result
+    elif number%2==1:
+        result=3*number+1
+        print(result)
+        return result
+    
+def main():
+    """新增一个try,except代码块，int函数在传入一个非整数字符串时，会产生ValueError错误，因此用于检测用户是否输入了一个非整数的字符串"""
+    number=input("please input a number:")
+    try:
+        number=int(number)
+        result=collatz(number)
+        while result != 1:
+            result=collatz(result)
+    except ValueError:
+        print("please input correct int number:")
+
+if __name__=='__main__':
+    main()
