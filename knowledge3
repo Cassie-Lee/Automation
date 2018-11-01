@@ -38,3 +38,7 @@ sys.argv
 不用说了，「using_sys.py」脚本名，后面的用空格分割开的「we」「are」「argument」就是参数了。PS：一般参数由空格分隔，如果参数内部有空格要使用英文
 双引号引起来比如这样：python using_sys.py hi "I'm 7sDream"按照教程的命令行运行脚本的时候，按照argv的定义：argv = ["using_sys.py", "we", 
 "are", "argument"]然后用for对argv这个List进行迭代输出，就得到了教程里的结果。「话说你真的跟着教程做了吗？we are argument因该是你亲手输入终端的啊
+
+mysql：
+数据库表中检索多个时间（非连续的时间段）
+select * from table_name where date_format(date,'%Y-%m-%d') in ('2018-11-01','2018-10-31');
