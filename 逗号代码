@@ -1,1 +1,7 @@
+spam=['apples','bananas','tofu','cats']
 
+def list_transform_string(list):
+    string=','.join(list[:-1])+" and "+list[-1]
+    print(string)
+
+list_transform_string(spam)
