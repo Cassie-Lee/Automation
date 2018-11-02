@@ -147,6 +147,7 @@ def main():
 
 if __name__=='__main__':main
  
+.pyw 扩展名意味着Python运行该程序时，不会显示终端窗口
  
  
  
