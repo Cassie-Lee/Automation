@@ -1,0 +1,47 @@
+# _*_ coding:utf-8 _*_
+import sys
+import shelve
+
+def store_information(database):
+    ID=input('Enter the ID number:')
+    info={}
+    info['name']=input('Enter the name:')
+    info['age']=input('Enter the age:')
+    info['phone']=input('Enter the phone:')
+    database[ID]=info
+
+def lookup_information(database):
+    ID=input('Enter the ID:')
+    field=input('What would you like to know?(name,age,phone)')
+    field=field.strip().lower()
+    print(database[ID][field])
+
+def print_help():
+    print('Please enter the help command:')
+    print('store  :store informatinon to database')
+    print('lookup :look up information by numID')
+    print('quit   :save information and quit')
+    print('?      :print help command')
+
+def enter_command():
+    cmd=input('Enter command (? for help)')
+    cmd=cmd.strip().lower()
+    return cmd
+
+def main():
+    database=shelve.open('db.dat')
+    try:
+        while True:
+            cmd=enter_command()
+            if cmd == 'store':
+                store_information(database)
+            elif cmd == 'lookup':
+                lookup_information(database)
+            elif cmd == '?':
+                print_help()
+            elif cmd == 'quit':
+                return
+    finally:
+        database.close()  
+
+if __name__=='__main__':main
