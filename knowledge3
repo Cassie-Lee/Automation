@@ -42,3 +42,118 @@ sys.argv
 mysql：
 数据库表中检索多个时间（非连续的时间段）
 select * from table_name where date_format(date,'%Y-%m-%d') in ('2018-11-01','2018-10-31');
+
+shelve模块用法：
+shelve模块提供数据存储功能，类似于字典，都是以键值对的形式保存数据，不过在shelve模块中，key必须为字符串，而值可以是python所支持的类型。
+我们可以获取一个shelve对象
+sh = shelve.open('xxx')
+ 删除shelve对象中的某个键值对
+ del sh['d']
+ 关闭shelve对象:
+    sh.close()
+  遍历所有数据
+    for item in sh.items():
+    
+ 在Python中Shelve模块提供了基本的存储操作，Shelve中的open函数在调用的时候返回一个shelf对象，通过该对象可以存储内容，即像操作字典一样进行
+ 存储操作。当在该对象中查找元素时，对象会根据已经存储的版本进行重新构建，当给某个键赋值的时候，元素会被存储。如下：
+
+>>> import shelve
+>>> data=shelve.open('db.dat')
+>>> data['x']=['1','2','3']
+>>> data['x']
+['1', '2', '3']
+>>> data['x'].append('4')
+>>> data['x']
+['1', '2', '3']
+>>> 
+open函数打开了db.dat文件，在键值’x’下存储了1,2,3元素，但是，上面的例子并没有将4存储在x中，原因在于4是添加到shelve对象的副本中，修改后的版本
+没有被最终保存。解决的办法：在使用shelve模块修改存储对象，将临时变量绑定到获得副本上，并且在修改后重新存储该副本。
+>>> import shelve
+>>> data=shelve.open('db.dat')
+>>> data['x']=['1','2','3']
+>>> data['x']
+['1', '2', '3']
+>>> temp=data['x']
+>>> temp.append('4')
+>>> data['x']=temp
+>>> data['x']
+['1', '2', '3', '4']
+>>> data['y']=['5','6']
+>>> temp=data['y']
+>>> temp.append('7')
+>>> data['y']=temp
+>>> data['x']
+['1', '2', '3', '4']
+>>> data['y']
+['5', '6', '7']
+>>> 
+或者将open函数的writeback参数设置为true：
+>>> xx=shelve.open('test.txt',writeback=True)
+>>> xx['x']=['1','2','3']
+>>> xx['x']
+['1', '2', '3']
+>>> xx['x'].append('4')
+>>> xx['x']
+['1', '2', '3', '4']
+>>> 
+
+案例：通过shelve构造一个“数据库”，存储姓名、年龄、电话号码等信息，代码如下：
+
+# _*_ coding:utf-8 _*_
+import sys
+import shelve
+
+def store_information(database):
+    ID=input('Enter the ID number:')
+    info={}
+    info['name']=input('Enter the name:')
+    info['age']=input('Enter the age:')
+    info['phone']=input('Enter the phone:')
+    database[ID]=info
+
+def lookup_information(database):
+    ID=input('Enter the ID:')
+    field=input('What would you like to know?(name,age,phone)')
+    field=field.strip().lower()
+    print(database[ID][field])
+
+def print_help():
+    print('Please enter the help command:')
+    print('store  :store informatinon to database')
+    print('lookup :look up information by numID')
+    print('quit   :save information and quit')
+    print('?      :print help command')
+
+def enter_command():
+    cmd=input('Enter command (? for help)')
+    cmd=cmd.strip().lower()
+    return cmd
+
+def main():
+    database=shelve.open('db.dat')
+    try:
+        while True:
+            cmd=enter_command()
+            if cmd == 'store':
+                store_information(database)
+            elif cmd == 'lookup':
+                lookup_information(database)
+            elif cmd == '?':
+                print_help()
+            elif cmd == 'quit':
+                return
+    finally:
+        database.close()  
+
+if __name__=='__main__':main
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
