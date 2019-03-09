@@ -1,4 +1,0 @@
-telnet ip port
-telent 10.1.15.13 80
-telent 10.1.15.13 7070 
-测试站点端口是否通
