@@ -1,1 +1,287 @@
 
+#!/usr/bin/python
+# -*- coding: UTF-8 -*-
+import MySQLdb
+from multiprocessing.dummy import Pool as ThreadPool
+import logging
+import json
+import httplib
+import hashlib
+import socket
+import ConfigParser
+import requests
+import datetime,time
+import sys
+reload(sys)
+sys.setdefaultencoding('utf-8')
+g_perfInfos = []
+def concurrentExecute(func, params, concurrency):
+    pool = ThreadPool(concurrency)
+    pool.map(func,params)
+    pool.close()
+    pool.join()
+def initLog():
+    logging.basicConfig(level=logging.INFO,
+                    format='%(asctime)s %(filename)s[line:%(lineno)d] %(levelname)s %(message)s',
+                    filename='../log/hypervisorPerfHour.log',
+                    filemode='w')
+def readDatabaseConfig(path):
+    cf = ConfigParser.ConfigParser()
+    cf.read(path)
+    default = dict(cf.items('database'))
+    ip = default['ip']
+    user = default['user']
+    password = default['password']
+    database = default['base_name']
+    databaseCfg = {"ip":ip, "user":user, "password":password, "database":database}
+    return databaseCfg
+def getAuthToken(siteInfo):
+    # version:R5-5.1
+    # version:R3-1.2
+    # version:R6-6.1
+    ip = siteInfo['ip']
+    port = siteInfo['port']
+    userName = siteInfo['userName']
+    password = siteInfo['password']
+    userType = siteInfo['userType']
+    version = siteInfo['version']
+    try:
+        header = {"Accept":"application/json;version="+version+";charset=UTF-8","X-Auth-User":userName,
+                  "X-Auth-Key":password,"X-Auth-UserType":userType,"X-Auth-AuthType":0,"X-ENCRIPT-ALGORITHM":1,"Content-Type":"application/json;charset=UTF-8"}
+        conn = httplib.HTTPConnection(ip,port)
+        conn.request("POST","/service/session","",header)
+        response = conn.getresponse()
+        auth_token = response.getheader('X-Auth-Token')
+        if auth_token is None:
+            status = str(response.status)
+            error_code = json.load(response)['errorCode']
+            logging.error("Get token error for "+ ip + ", return value:"+status+" error code:"+error_code)
+            return
+        siteInfo['authToken'] = auth_token
+    except Exception,e:
+        logging.error("Get token error for "+ ip + ", Error info:"+str(e))
+        return
+def getInfo(ip,port,uri,authToken,headVersion):
+    try:
+        header = {"Accept":"application/json;version="+headVersion+";charset=UTF-8","X-Auth-Token":authToken,
+                  "Content-Type":"application/json;charset=UTF-8"}
+        conn = httplib.HTTPConnection(ip,port,timeout=45)
+        headers = {'Connection': 'Keep-Alive'}
+        conn.request("GET",uri,"",header)
+        response = conn.getresponse()
+        if response is None:
+            status = str(response.status)
+            error_code = json.load(response)['errorCode']
+            logging.error("Get Info error for "+ ip + ", urn:"+uri+ ", return value:"+status+" error code:"+error_code)
+        ret = json.loads(response.read())
+        conn.close()
+        return ret
+    except Exception,e:
+        logging.error("Get Info for "+ ip + ", urn is :"+uri+ ", Error info:"+str(e))
+        return None
+def getDetailHostPerfInfo(siteInfo):
+    # urnList = []
+    siteId = siteInfo['cloudSiteId']
+    ip = siteInfo['ip']
+    port = siteInfo['port']
+    siteUrn = siteInfo['siteUrn']
+    authToken = siteInfo['authToken']
+    headerVersion = siteInfo['version']
+    hostInfos = getInfo(ip, port, siteUrn + "/hosts", authToken, headerVersion)
+    if hostInfos is None:
+        logging.error("[ERR]Get urn info error, siteIp" + ip + ".")
+        return
+    datetime_now = datetime.datetime.now()
+    curTime = time.strftime("%Y-%m-%d %H:%M",time.localtime())
+    timestamp_now = int(time.mktime(datetime_now.timetuple()))
+    # 将当前时间转为时间戳
+    datetime_start = datetime_now - datetime.timedelta(minutes=60)
+    timestamp_start = int(time.mktime(datetime_start.timetuple()))
+    if 'errorCode' in hostInfos.keys():
+        logging.error("[ERR]cluster has retired, siteIp %s,siteId %d", ip,siteId)
+    else:
+        for host in hostInfos['hosts']:
+            hostName = str(host['name'])
+            urn = host['urn']
+            hostIp = host['ip']
+            cpuUsages = countAverage(siteInfo,urn,'cpu_usage',timestamp_start,timestamp_now)
+            memUsages = countAverage(siteInfo,urn,'mem_usage',timestamp_start,timestamp_now)
+            # print (cpuUsages)
+            if cpuUsages and memUsages:
+                i = 0
+                for cpuUsage in cpuUsages:
+                    memUsage = memUsages[i]
+                    i += 1
+                    g_perfInfos.append({'hostName':hostName,'cpuUsage':cpuUsage,'memUsage':memUsage,'hostIp':hostIp,'collectTime':curTime})
+            else:
+                g_perfInfos.append({'hostName':hostName,'cpuUsage':cpuUsages,'memUsage':memUsages,'hostIp':hostIp,'collectTime':curTime})
+def countAverage(siteInfo,urn,perfKeyword,startTime,endTime):
+    ip = siteInfo['ip']
+    siteUrn = siteInfo['siteUrn']
+    authToken = siteInfo['authToken']
+    version = siteInfo['version']
+    address = 'http://'+ip+':7070'
+    request_params = [{"urn": urn,"metricId": perfKeyword,"startTime": str(startTime),
+                       "endTime": str(endTime),"interval": "300"}]
+    data = json.dumps(request_params)
+    result = get_fusion_compute_metric(address, version, authToken, siteUrn, data)
+    # totalValue = 0
+    # number = 0
+    totalValueList = []
+    valueLists = result[0]['metricValue']
+    if len(valueLists) != 0:
+        for valueList in valueLists:
+            # totalValue += float(valueList['value'])
+            # number += 1
+            totalValueList.append(str(valueList['value']))
+        # logging.error(result)
+        # print (number)
+        # averageValue = totalValue/number
+        # cpuUsage = "%.2f" % averageValue
+        return totalValueList
+    else:
+        return
+def get_fusion_compute_metric(address, version, authToken, siteUrn, request_parameters):
+    URL = address + siteUrn + '/monitors/objectmetric-curvedata'
+    headers = {'Content-Type': 'application/json',
+               'Accept': 'application/json;version=' + version + ';charset=UTF-8', 'X-Auth-Token': authToken,
+               'Connection': 'close'}
+    response = requests.post(URL, headers=headers, data=request_parameters)
+    if response:
+        obj = json.loads(response.content)
+        return obj['items']
+    else:
+        err = "Get VM Metric status response error.[status_code={}:error content={}]".format(response.status_code,response.text)
+        logging.error(err)
+        raise Exception(err)
+def getCloudSiteBaseInfo():
+    siteInfos =[]
+    dataBase = MySQLdb.connect(g_databaseCfg['ip'], g_databaseCfg['user'], g_databaseCfg['password'], g_databaseCfg['database'], charset='utf8')
+    cursor = dataBase.cursor()
+    querySql = "SELECT cloud_site.cloud_site_id,ip,port,version_1,urn,region_id,user,password,usertype " \
+               "FROM cloud_site,interface_account " \
+               "WHERE cloud_site.cloud_site_id = interface_account.cloud_site_id AND cloud_site.type='FC' " \
+               "AND cloud_site.ci_status ='live';"
+    try:
+        cursor.execute(querySql)
+    except MySQLdb.Error, e:
+        try:
+            logging.error("Error %d:%s" % (e.args[0], e.args[1]))
+        except IndexError:
+            logging.error("MySQL Error:%s" % str(e))
+        return None
+    siteRets = cursor.fetchall()
+    for site in siteRets:
+        version_1 = site[3]
+        password = str(site[7])
+        if password == 'Huawei@123':
+            password = 'Ydjkz8h!'
+        userType = str(site[8])
+        if version_1 == 'R5':
+            version = '5.1'
+        elif version_1 == 'R3':
+            if userType == '0':
+                password =  hashlib.sha256(password).hexdigest()
+            version = '1.2'
+        elif version_1 == 'R6C00':
+            version = '6.0'
+        elif version_1 == 'R6C10':
+            version = '6.1'
+        else:
+            logging.error("[ERR]Version %s is error", version_1)
+            return None
+        siteInfo = {"cloudSiteId":site[0],"ip":str(site[1]),"port":str(site[2]),"version":str(version),"siteUrn":str(site[4]),"regionId":site[5],
+                    "userName":str(site[6]),"password":password,"userType":str(site[8]),"authToken":None}
+        siteInfos.append(siteInfo)
+    dataBase.close()
+    return siteInfos
+def getTestSiteInfo():
+    userName = 'pvmadmin'
+    password = 'Ydjkz8h!'
+    version = '6.0'
+    ip = '10.74.42.184'
+    port = '7070'
+    userType = '1'
+    siteUrn = '/service/sites/4EFC0836'
+    siteInfos = [{"cloudSiteId":None,"ip":ip,"port":port,"version":version,"siteUrn":siteUrn,"regionId":None,
+                "userName":userName,"password":password,"userType":userType,"authToken":None}]
+    return siteInfos
+def updateDetaToDB(perfInfos):
+    database = MySQLdb.connect(g_databaseCfg['ip'], g_databaseCfg['user'], g_databaseCfg['password'], g_databaseCfg['database'], charset='utf8')
+    cursor = database.cursor()
+    cleanSql = "truncate table hypervisor_perf_hour"
+    cursor.execute(cleanSql)
+    database.commit()
+    for perfInfo in perfInfos:
+        hostName = perfInfo['hostName']
+        collectTime = perfInfo['collectTime']
+        cpuUsage = perfInfo['cpuUsage']
+        memUsage = perfInfo['memUsage']
+        hostIp = perfInfo['hostIp']
+        if hostName == None:
+            continue
+        try:
+            insertSql = "INSERT INTO hypervisor_perf_hour(host_name,collect_time,cpu_usage,mem_usage,host_ip) VALUES (%s,%s,%s,%s,%s)"
+            values = (str(hostName),str(collectTime),str(cpuUsage),str(memUsage),str(hostIp))
+            cursor.execute(insertSql, values)
+            database.commit()
+        except MySQLdb.Error, e:
+            try:
+                logging.error("Error %d:%s" % (e.args[0], e.args[1]))
+            except IndexError:
+                logging.error("MySQL Error:%s" % str(e))
+            # database.rollback()
+    database.close()
+    return
+def insertDataToDB(perfInfos):
+    curTime = time.strftime("%Y-%m-%d %H:%M",time.localtime())
+    database = MySQLdb.connect(g_databaseCfg['ip'], g_databaseCfg['user'], g_databaseCfg['password'], g_databaseCfg['database'], charset='utf8')
+    cursor = database.cursor()
+    for perfInfo in perfInfos:
+        hostName = perfInfo['hostName']
+        collectTime = perfInfo['collectTime']
+        cpuUsage = perfInfo['cpuUsage']
+        memUsage = perfInfo['memUsage']
+        hostIp = perfInfo['hostIp']
+        if hostName == None:
+            continue
+        try:
+            insertSql = "INSERT INTO hypervisor_perf_hour_archive(host_name,collect_time,cpu_usage,mem_usage,host_ip,archive_time) VALUES (%s,%s,%s,%s,%s,%s)"
+            values = (str(hostName),str(collectTime),str(cpuUsage),str(memUsage),str(hostIp),str(curTime))
+            cursor.execute(insertSql, values)
+            database.commit()
+        except MySQLdb.Error, e:
+            try:
+                logging.error("Error %d:%s" % (e.args[0], e.args[1]))
+            except IndexError:
+                logging.error("MySQL Error:%s" % str(e))
+            # database.rollback()
+    database.close()
+    return
+def main():
+    #正式代码
+    global g_databaseCfg
+    socket.setdefaulttimeout(30)
+    initLog()
+    logging.info("[INFO]Strat collect data!")
+    g_databaseCfg = readDatabaseConfig('../config/database - Copy.cfg')
+    baseSiteInfos = getCloudSiteBaseInfo()
+    # baseSiteInfos = getTestSiteInfo()
+    if (None == baseSiteInfos):
+        logging.error("[ERR]get siteInfoS error.")
+        return
+    poolSize = len(baseSiteInfos)
+    concurrentExecute(getAuthToken, baseSiteInfos, poolSize)
+    for baseSiteInfo in baseSiteInfos:
+        if baseSiteInfo['authToken'] == None:
+            baseSiteInfos.remove(baseSiteInfo)
+            poolSize -= 1
+    concurrentExecute(getDetailHostPerfInfo, baseSiteInfos, poolSize)
+    updateDetaToDB(g_perfInfos)
+    logging.info("[INFO]End collect data!")
+    logging.info("[INFO]start archive data!")
+    insertDataToDB(g_perfInfos)
+    logging.info("[INFO]End archive data!")
+    print ("Script END")
+if __name__ == '__main__':
+    main()
